@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Blue Bouquet</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+
+            overflow: hidden;
+
+            font-family: 'Poppins', sans-serif;
+
+            background:
+                radial-gradient(circle at top,
+                    #f4fbff,
+                    #d8efff 40%,
+                    #bddfff 100%);
+        }
+
+        canvas {
+
+            position: absolute;
+            inset: 0;
+        }
+
+        /* =========================
+   UI
+========================= */
+
+        .overlay {
+
+            position: absolute;
+            inset: 0;
+
+            pointer-events: none;
+        }
+
+        .title {
+
+            position: absolute;
+
+            top: 40px;
+
+            width: 100%;
+
+            text-align: center;
+
+            z-index: 10;
+        }
+
+        .title h1 {
+
+            font-size: 5rem;
+
+            color: #0d3b66;
+
+            letter-spacing: -3px;
+        }
+
+        .title p {
+
+            margin-top: 10px;
+
+            color: #245b8f;
+
+            font-size: 1.2rem;
+        }
+
+        /* =========================
+   RESPONSIVE
+========================= */
+
+        @media(max-width:768px) {
+
+            .title {
+
+                top: 25px;
+                padding: 0 20px;
+            }
+
+            .title h1 {
+
+                font-size: 2.5rem;
+
+                line-height: 1.1;
+
+                letter-spacing: -1px;
+            }
+
+            .title p {
+
+                font-size: 1rem;
+
+                margin-top: 12px;
+            }
+        }
+
+        @media(max-width:480px) {
+
+            .title h1 {
+
+                font-size: 2rem;
+            }
+
+            .title p {
+
+                font-size: .9rem;
+            }
+        }
+    </style>
+</head>
+
+<audio id="bgMusic" autoplay loop>
+
+    <source src="music/only.mp3" type="audio/mpeg">
+
+</audio>
+
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="overlay">
+
+        <div class="title">
+
+
+
+        </div>
+
+    </div>
+
+    <script>
+
+        /* =========================
+           CANVAS
+        ========================= */
+
+        const canvas =
+            document.getElementById('canvas');
+
+        const ctx =
+            canvas.getContext('2d');
+
+        let w, h;
+
+        function resize() {
+
+            w = canvas.width =
+                window.innerWidth;
+
+            h = canvas.height =
+                window.innerHeight;
+        }
+
+        resize();
+
+        window.addEventListener(
+            'resize',
+            resize
+        );
+
+        /* =========================
+           HELPERS
+        ========================= */
+
+        function rand(min, max) {
+
+            return Math.random() *
+                (max - min) + min;
+        }
+
+        function lerp(a, b, t) {
+
+            return a + (b - a) * t;
+        }
+
+        /* =========================
+           PARTICULAS
+        ========================= */
+
+        const particles = [];
+
+        for (let i = 0; i < 70; i++) {
+
+            particles.push({
+
+                x: Math.random() * w,
+                y: Math.random() * h,
+
+                size: rand(8, 22),
+
+                speed: rand(.3, 1.1),
+
+                rot: rand(0, 360)
+            });
+        }
+
+        /* =========================
+           RAMO
+        ========================= */
+
+        const bouquet = [];
+
+        const centerX = () => w / 2;
+        const baseY = () => h + 120;
+
+        function addFlower(x, y, type, delay, size) {
+
+            bouquet.push({
+
+                x,
+                y,
+                type,
+                delay,
+                size,
+
+                grow: 0,
+
+                stem: {
+                    x1: () => centerX(),
+                    y1: () => baseY(),
+
+                    cx: x + rand(-100, 100),
+
+                    cy: lerp(baseY(), y, .5),
+
+                    x2: x,
+                    y2: y
+                }
+            });
+        }
+
+        /* =========================
+           RESPONSIVE POSITIONS
+        ========================= */
+
+        function setupFlowers() {
+
+            bouquet.length = 0;
+
+            const mobile =
+                w < 768;
+
+            const scale =
+                mobile ? .68 : 1;
+
+            const cx =
+                centerX();
+
+            const cy =
+                h / 2 + (mobile ? 120 : 0);
+
+            addFlower(cx - 180 * scale, cy + 120 * scale, 'gerbera', 80, 1 * scale);
+
+            addFlower(cx - 110 * scale, cy - 10 * scale, 'tulip', 140, .9 * scale);
+
+            addFlower(cx - 30 * scale, cy - 190 * scale, 'tulip', 200, 1.1 * scale);
+
+            addFlower(cx + 70 * scale, cy - 80 * scale, 'tulip', 260, .9 * scale);
+
+            addFlower(cx + 180 * scale, cy + 100 * scale, 'gerbera', 320, 1 * scale);
+
+            addFlower(cx - 70 * scale, cy + 170 * scale, 'gerbera', 380, .82 * scale);
+
+            addFlower(cx + 40 * scale, cy + 190 * scale, 'gerbera', 420, .78 * scale);
+        }
+
+        setupFlowers();
+
+        window.addEventListener(
+            'resize',
+            setupFlowers
+        );
+
+        /* =========================
+           GERBERA
+        ========================= */
+
+        function drawGerbera(x, y, s, rot) {
+
+            ctx.save();
+
+            ctx.translate(x, y);
+
+            ctx.rotate(rot);
+
+            ctx.scale(s, s);
+
+            ctx.shadowBlur = 25;
+
+            ctx.shadowColor =
+                'rgba(0,0,0,.15)';
+
+            for (let layer = 0; layer < 3; layer++) {
+
+                const petals =
+                    32 + layer * 8;
+
+                for (let i = 0; i < petals; i++) {
+
+                    const angle =
+                        (Math.PI * 2 / petals) * i;
+
+                    const radius =
+                        45 + layer * 10;
+
+                    ctx.save();
+
+                    ctx.rotate(angle);
+
+                    const grad =
+                        ctx.createLinearGradient(
+                            0, -20,
+                            0, -95
+                        );
+
+                    grad.addColorStop(
+                        0,
+                        '#6ec5ff'
+                    );
+
+                    grad.addColorStop(
+                        1,
+                        '#e8f8ff'
+                    );
+
+                    ctx.fillStyle = grad;
+
+                    ctx.beginPath();
+
+                    ctx.moveTo(0, -radius);
+
+                    ctx.bezierCurveTo(
+                        22, -radius - 10,
+                        18, -radius - 65,
+                        0, -radius - 85
+                    );
+
+                    ctx.bezierCurveTo(
+                        -18, -radius - 65,
+                        -22, -radius - 10,
+                        0, -radius
+                    );
+
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+            }
+
+            const center =
+                ctx.createRadialGradient(
+                    0, 0, 5,
+                    0, 0, 34
+                );
+
+            center.addColorStop(
+                0,
+                '#0d3b66'
+            );
+
+            center.addColorStop(
+                1,
+                '#03111f'
+            );
+
+            ctx.fillStyle = center;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                0,
+                0,
+                34,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+            ctx.fillStyle =
+                'rgba(255,255,255,.5)';
+
+            ctx.beginPath();
+
+            ctx.arc(
+                -10,
+                -12,
+                6,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        /* =========================
+           TULIPAN
+        ========================= */
+
+        function drawTulip(x, y, s, rot) {
+
+            ctx.save();
+
+            ctx.translate(x, y);
+
+            ctx.rotate(rot);
+
+            ctx.scale(s, s);
+
+            function petal(offset, rotation, scaleY) {
+
+                ctx.save();
+
+                ctx.translate(offset, 0);
+
+                ctx.rotate(rotation);
+
+                ctx.scale(1, scaleY);
+
+                const g =
+                    ctx.createLinearGradient(
+                        0, -120,
+                        0, 20
+                    );
+
+                g.addColorStop(
+                    0,
+                    '#dff5ff'
+                );
+
+                g.addColorStop(
+                    .5,
+                    '#69bfff'
+                );
+
+                g.addColorStop(
+                    1,
+                    '#2d8cff'
+                );
+
+                ctx.fillStyle = g;
+
+                ctx.shadowBlur = 18;
+
+                ctx.shadowColor =
+                    'rgba(0,0,0,.12)';
+
+                ctx.beginPath();
+
+                ctx.moveTo(0, -95);
+
+                ctx.bezierCurveTo(
+                    45, -55,
+                    42, 18,
+                    0, 8
+                );
+
+                ctx.bezierCurveTo(
+                    -42, 18,
+                    -45, -55,
+                    0, -95
+                );
+
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            petal(-26, -.28, .95);
+
+            petal(26, .28, .95);
+
+            petal(0, 0, 1.15);
+
+            ctx.restore();
+        }
+
+        /* =========================
+           TALLOS
+        ========================= */
+
+        function drawStem(stem, grow) {
+
+            ctx.save();
+
+            ctx.lineWidth =
+                w < 768 ? 5 : 8;
+
+            ctx.lineCap = 'round';
+
+            ctx.strokeStyle = '#37a454';
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                stem.x1(),
+                stem.y1()
+            );
+
+            for (let t = 0; t < grow; t += 0.02) {
+
+                const x =
+                    (1 - t) * (1 - t) * stem.x1() +
+                    2 * (1 - t) * t * stem.cx +
+                    t * t * stem.x2;
+
+                const y =
+                    (1 - t) * (1 - t) * stem.y1() +
+                    2 * (1 - t) * t * stem.cy +
+                    t * t * stem.y2;
+
+                ctx.lineTo(x, y);
+            }
+
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        /* =========================
+           HOJAS
+        ========================= */
+
+        function drawLeaf(x, y, rot, s) {
+
+            ctx.save();
+
+            ctx.translate(x, y);
+
+            ctx.rotate(rot);
+
+            ctx.scale(s, s);
+
+            const g =
+                ctx.createLinearGradient(
+                    0, -40,
+                    0, 40
+                );
+
+            g.addColorStop(
+                0,
+                '#8dffab'
+            );
+
+            g.addColorStop(
+                1,
+                '#2f9845'
+            );
+
+            ctx.fillStyle = g;
+
+            ctx.beginPath();
+
+            ctx.moveTo(0, -60);
+
+            ctx.bezierCurveTo(
+                45, -20,
+                40, 50,
+                0, 80
+            );
+
+            ctx.bezierCurveTo(
+                -40, 50,
+                -45, -20,
+                0, -60
+            );
+
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        /* =========================
+           GALERIA
+        ========================= */
+
+        const galleryImages = [
+
+            'img/1.png',
+            'img/2.png',
+            'img/3.png',
+            'img/4.png',
+            'img/5.png',
+            'img/6.png',
+            'img/7.png',
+            'img/8.png',
+            'img/9.png',
+            'img/10.png',
+            'img/11.png',
+            'img/12.png',
+            'img/13.png',
+            'img/14.png',
+            'img/15.png',
+            'img/16.png',
+            'img/17.png',
+            'img/18.png',
+            'img/19.png',
+            'img/20.png',
+            'img/21.png',
+            'img/22.png'
+
+        ];
+
+        const loadedImages = [];
+
+        galleryImages.forEach(src => {
+
+            const img =
+                new Image();
+
+            img.src = src;
+
+            loadedImages.push(img);
+        });
+
+        let currentImage = 0;
+
+        let showGallery = false;
+
+        /* =========================
+           ROUND RECT
+        ========================= */
+
+        function roundRect(x, y, w, h, r) {
+
+            ctx.beginPath();
+
+            ctx.moveTo(x + r, y);
+
+            ctx.lineTo(x + w - r, y);
+
+            ctx.quadraticCurveTo(
+                x + w, y,
+                x + w, y + r
+            );
+
+            ctx.lineTo(x + w, y + h - r);
+
+            ctx.quadraticCurveTo(
+                x + w, y + h,
+                x + w - r, y + h
+            );
+
+            ctx.lineTo(x + r, y + h);
+
+            ctx.quadraticCurveTo(
+                x, y + h,
+                x, y + h - r
+            );
+
+            ctx.lineTo(x, y + r);
+
+            ctx.quadraticCurveTo(
+                x, y,
+                x + r, y
+            );
+
+            ctx.closePath();
+        }
+
+        function drawGallery() {
+
+            ctx.save();
+
+            /* FONDO */
+
+            ctx.fillStyle =
+                'rgba(0,0,0,.92)';
+
+            ctx.fillRect(0, 0, w, h);
+
+            const img =
+                loadedImages[currentImage];
+
+            if (!img.complete) {
+
+                ctx.restore();
+                return;
+            }
+
+            /* =========================
+               COVER FULLSCREEN
+            ========================= */
+
+            const scale = Math.min(
+
+                (w * 0.95) / img.width,
+
+                (h * 0.92) / img.height
+            );
+
+            const drawW =
+                img.width * scale;
+
+            const drawH =
+                img.height * scale;
+
+            /* =========================
+               IMAGEN
+            ========================= */
+
+            ctx.drawImage(
+
+                img,
+
+                (w - drawW) / 2,
+                (h - drawH) / 2,
+
+                drawW,
+                drawH
+            );
+
+
+
+            /* =========================
+               OVERLAY SUAVE
+            ========================= */
+
+            const overlay =
+                ctx.createLinearGradient(
+                    0, 0, 0, h
+                );
+
+            overlay.addColorStop(
+                0,
+                'rgba(0,0,0,.35)'
+            );
+
+            overlay.addColorStop(
+                1,
+                'rgba(0,0,0,.65)'
+            );
+
+            ctx.fillStyle = overlay;
+
+            ctx.fillRect(0, 0, w, h);
+
+            /* =========================
+               TITULO
+            ========================= */
+
+            ctx.fillStyle = 'white';
+
+            ctx.textAlign = 'center';
+
+            ctx.font =
+                w < 768
+                    ? '700 28px Poppins'
+                    : '700 52px Poppins';
+
+            ctx.fillText(
+
+
+
+                w / 2,
+
+                w < 768 ? 60 : 90
+            );
+
+            ctx.font =
+                w < 768
+                    ? '300 15px Poppins'
+                    : '300 24px Poppins';
+
+            ctx.fillText(
+
+
+
+                w / 2,
+
+                w < 768 ? 95 : 135
+            );
+
+            ctx.restore();
+        }
+
+        /* =========================
+           CAMBIAR IMAGEN
+        ========================= */
+
+        setInterval(() => {
+
+            if (showGallery) {
+
+                currentImage++;
+
+                if (currentImage >= loadedImages.length) {
+
+                    currentImage = 0;
+                }
+            }
+
+        }, 5000);
+
+        /* =========================
+           LOOP
+        ========================= */
+
+        let frame = 0;
+
+        function animate() {
+
+            requestAnimationFrame(
+                animate
+            );
+
+            frame++;
+
+            ctx.clearRect(0, 0, w, h);
+
+            /* GALERIA */
+
+            if (showGallery) {
+
+                drawGallery();
+
+                return;
+            }
+
+            /* GLOW */
+
+            const glow =
+                ctx.createRadialGradient(
+                    centerX(),
+                    h / 2,
+                    50,
+                    centerX(),
+                    h / 2,
+                    700
+                );
+
+            glow.addColorStop(
+                0,
+                'rgba(255,255,255,.85)'
+            );
+
+            glow.addColorStop(
+                1,
+                'rgba(255,255,255,0)'
+            );
+
+            ctx.fillStyle = glow;
+
+            ctx.fillRect(0, 0, w, h);
+
+            /* PARTICULAS */
+
+            particles.forEach(p => {
+
+                p.y += p.speed;
+
+                p.x +=
+                    Math.sin(frame * .01 + p.y * .01)
+                    * .35;
+
+                if (p.y > h + 40) {
+
+                    p.y = -40;
+
+                    p.x = Math.random() * w;
+                }
+
+                ctx.save();
+
+                ctx.translate(
+                    p.x,
+                    p.y
+                );
+
+                ctx.rotate(
+                    p.rot + frame * .004
+                );
+
+                ctx.fillStyle =
+                    'rgba(120,190,255,.25)';
+
+                ctx.beginPath();
+
+                ctx.ellipse(
+                    0,
+                    0,
+                    p.size,
+                    p.size * .6,
+                    0,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fill();
+
+                ctx.restore();
+            });
+
+            /* TALLOS */
+
+            bouquet.forEach(f => {
+
+                const t =
+                    Math.min(
+                        1,
+                        (frame - f.delay) / 120
+                    );
+
+                drawStem(
+                    f.stem,
+                    t
+                );
+
+                f.grow = t;
+            });
+
+            /* HOJAS */
+
+            const leafCount =
+                w < 768 ? 8 : 14;
+
+            for (let i = 0; i < leafCount; i++) {
+
+                drawLeaf(
+
+                    centerX() +
+                    Math.sin(i * .9)
+                    * (w < 768 ? 90 : 140),
+
+                    h / 2 +
+                    (w < 768 ? 210 : 170)
+                    + i * 22,
+
+                    Math.sin(i) * 1.2,
+
+                    w < 768
+                        ? .38
+                        : .55
+                );
+            }
+
+            /* FLORES */
+
+            bouquet.forEach(f => {
+
+                if (f.grow > 0) {
+
+                    if (f.type === 'gerbera') {
+
+                        drawGerbera(
+
+                            f.x,
+                            f.y,
+
+                            f.grow *
+                            f.size,
+
+                            Math.sin(frame * .01) * .03
+                        );
+                    }
+
+                    else {
+
+                        drawTulip(
+
+                            f.x,
+                            f.y,
+
+                            f.grow *
+                            f.size,
+
+                            Math.sin(frame * .008) * .05
+                        );
+                    }
+                }
+            });
+
+            /* MOSTRAR GALERIA */
+
+            if (frame > 800) {
+
+                showGallery = true;
+            }
+        }
+
+        animate();
+
+        const music =
+            document.getElementById('bgMusic');
+
+        music.volume = 0.35;
+
+        document.addEventListener('click', () => {
+
+            /* 1:12 = 72 segundos */
+
+            music.currentTime = 72;
+
+            music.play();
+
+        }, { once: true });
+
+    </script>
+
+</body>
+
+</html>
